@@ -48,11 +48,23 @@ class GraphBuilder:
         plt.show()
 
     def line_plot(self, x, y, label="Line", color="royalblue"):
-        plt.figure(figsize = (8,5))
-        plt.bar(x,y, label=label, color=color)
+        plt.figure(figsize=(8,5))
+        plt.plot(x, y, label=label, color=color)
         plt.title(self.title)
         plt.xlabel(self.xlabel)
         plt.ylabel(self.ylabel)
         plt.legend()
-        plt.grid(True, axis="y")
+        plt.grid(True)
         plt.show()
+
+    def scatter_plot(self, x, y, label="Points", alpha=0.6, color="purple"):
+        plt.figure(figsize=(8,5))
+        plt.scatter(x, y, label=label, alpha=alpha, color=color)
+        plt.title(self.title)
+        plt.xlabel(self.xlabel)
+        plt.ylabel(self.ylabel)
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    
