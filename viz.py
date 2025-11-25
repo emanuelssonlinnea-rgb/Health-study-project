@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from scipy import stats
-from math import sqrt
-from statsmodels.stats.power import NormalIndPower
-from statsmodels.stats.proportion import proportion_effectsize
+from io_utils import *
 
 
 
@@ -12,6 +9,9 @@ from statsmodels.stats.proportion import proportion_effectsize
 #------------ Graph builder -----------------
 
 class GraphBuilder:
+    """
+    Creates visualization with different types of graphs
+    """
     def __init__(self, title="Health study graphs", xlabel="X-axis", ylabel="Y-axis"):
         self.title=title
         self.xlabel = xlabel
@@ -67,4 +67,51 @@ class GraphBuilder:
         plt.grid(True)
         plt.show()
 
-    
+
+#------------ Simulering -----------------
+
+class Simulator:
+    """
+    Calculates the number of sick people, creates simulation and visualizes the difference
+    """
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.sannolikhet_sjuk = self._beräkna_sannolikhet()
+        self.simulerade_värden = self._simulera_sjukdomar()
+
+    #RÄKNA ANDEL SJUKA PERSONER I DATAN
+    def _beräkna_sannolikhet(self) -> float:
+        sjuk = (self.df["disease"] == 1).sum()
+        total = len(self.df)
+        print(f"Antal sjuka: {sjuk} av {total}")
+        return sjuk / total
+
+    #SIMULERA 1000 SLUMPADE PERSONER MED SAMMA SANNOLIKHET FÖR SJUKDOM
+    def _simulera_sjukdomar(self, n: int = 1000) -> np.ndarray:
+        np.random.seed(42)
+        return np.random.choice([0, 1], size=n,p=[1 - self.sannolikhet_sjuk, self.sannolikhet_sjuk])  # använder choice eftersom detta är binär lista istället för normalfördelade värden. La även in "p" för parametrar i sannolikhet
+
+    #JÄMFÖR SIMULERADE ANDELEN MED DEN VERKLIGA ANDELEN
+    def real_mean(self, n: int) -> float:   
+        return np.mean(np.random.choice(self.df["disease"], size=n, replace=False))
+
+    def sample_mean(self, n: int) -> float: 
+        return np.mean(np.random.choice(self.simulerade_värden, size=n, replace=False))
+
+
+    #JÄMFÖR SIMULERADE ANDELEN MED DEN VERKLIGA ANDELEN O VISUALISERAR
+    def jämför_simulering(self, n: int = 200, R: int = 2000):
+        means_real = np.array([self.real_mean(n) for _ in range(R)])
+        means_simulation = np.array([self.sample_mean(n) for _ in range(R)])
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.hist(means_real, bins=30, alpha=0.6, label="Verkliga data")
+        ax.hist(means_simulation, bins=30, alpha=0.6, label="Simulerade data")
+        ax.axvline(self.sannolikhet_sjuk, color="k", linestyle="--", label="Verklig andel sjuka")
+        ax.set_title("Jämförelse mellan verklig och simulerad sjukdom")
+        ax.set_xlabel("Andel sjuka")
+        ax.set_ylabel("Frekvens")
+        ax.grid(True, axis="y")
+        ax.legend()
+        plt.show()
+
